@@ -1,4 +1,4 @@
-cliente_id,plano_id,valor_pago,data_pagamento
+﻿cliente_id,plano_id,valor_pago,data_pagamento
 1,2,200,2024-03-10
 1,2,200,2024-04-10
 1,2,200,2024-05-10
