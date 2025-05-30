@@ -4,7 +4,7 @@ import streamlit as st
 from datetime import datetime
 
 # 📦 Conecta (ou cria) o banco de dados SQLite
-conn = sqlite3.connect("biblioteca.db", check_same_thread=False)
+conn = sqlite3.connect("AulaPython29.05/biblioteca.db", check_same_thread=False)
 cursor = conn.cursor()
 
 # 🏗️ Criação da tabela autores (DDL)
@@ -266,8 +266,9 @@ with st.form("form_editar_autor", clear_on_submit=True):
                             UPDATE autores
                             SET nome = ?
                             WHERE id = ?
-                        ''', (nome_autor, autor_id))
+                        ''', (novo_nome_autor, autor_id))
         conn.commit()
+        st.success(f"Nome Autor alterado com Sucesso!")
 st.write('\n')
 st.write('\n')
 

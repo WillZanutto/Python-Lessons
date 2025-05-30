@@ -4,7 +4,7 @@ import streamlit as st
 from datetime import datetime
 
 # 📦 Conecta (ou cria) o banco de dados SQLite
-conn = sqlite3.connect("produtos.db", check_same_thread=False)
+conn = sqlite3.connect("AulaPython29.05/produtos.db", check_same_thread=False)
 cursor = conn.cursor()
 
 # 🏗️ Criação da tabela produtos (DDL)
