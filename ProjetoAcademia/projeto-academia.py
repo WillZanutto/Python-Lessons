@@ -136,7 +136,7 @@ if cursor.fetchone()[0] == 0:
 st.title("🎓 Sistema para Academia")
 
 st.subheader("Fazer Novo Cadastro", divider='grey')
-opcao_menu = st.selectbox('Escolha uma opção para cadastrar', ['Cliente', 'Pagamento', 'Treino', 'Exercicios no Treino'])
+opcao_menu = st.selectbox('Escolha uma opção para cadastrar', ['Cliente', 'Pagamento', 'Treino', 'Exercicios por Treino'])
 
 if opcao_menu == 'Cliente':
     st.write('Cliente')
@@ -164,6 +164,25 @@ if opcao_menu == 'Cliente':
     #         st.error(f"Erro ao registrar empréstimo: {str(e)}")
 elif opcao_menu == 'Pagamento':
     st.write('Pagamento')
+    menu_cliente = pd.read_sql_query("SELECT * FROM clientes_academia ORDER BY nome ASC", conn)
+    menu_planos = pd.read_sql_query("SELECT * FROM clientes_academia ORDER BY nome ASC", conn)
+    with st.form("form_pagamento", clear_on_submit=True):
+        clientes_opcao = ["-- Selecione o Cliente --"] + menu_cliente["nome"].tolist()
+        nome_cliente = st.selectbox("Selecione o Cliente para Pagamento", clientes_opcao)
+        pagar = st.form_submit_button("Pago")
+        if pagar:
+            if (nome_cliente != '-- Selecione o Cliente --'):
+                id_cliente = int(menu_cliente[menu_cliente["nome"] == nome_cliente]["id"].values[0])
+                id_plano_cliente = int(menu_cliente[menu_cliente["nome"] == nome_cliente]["plano_id"].values[0])
+                data_pagamento = datetime.now().strftime("%Y-%m-%d")
+                df_valor_plano = pd.read_sql_query("SELECT preco_mensal FROM planos WHERE id = ?", conn, params=(id_plano_cliente,))
+                preco_plano = df_valor_plano['preco_mensal'].iloc[0]
+                cursor.execute("INSERT INTO pagamento_clientes (cliente_id, plano_id, valor_pago, data_pagamento) VALUES (?, ?, ?, ?)",
+                    (id_cliente, id_plano_cliente, preco_plano, data_pagamento))
+                conn.commit()
+                st.success(f"Pagamento feito com sucesso")
+            else:
+                st.error(f"Favor selecionar um cliente.")
     # with st.form("form_emprestimo"):
     #     menu_livro = pd.read_sql_query("SELECT * FROM livros ORDER BY titulo ASC", conn)
     #     livro = st.selectbox("Titulo do livro", menu_livro["titulo"])
@@ -210,12 +229,20 @@ if opcao_menu == 'Treino':
     #     except Exception as e:
     #         conn.rollback()
     #         st.error(f"Erro ao registrar empréstimo: {str(e)}")
-elif opcao_menu == 'Exercicios no Treino':
+elif opcao_menu == 'Exercicios por Treino':
     st.write('Exercicios por Treino')
-    # with st.form("form_novo_livro", clear_on_submit=True):
+    with st.form("form_novo_exercicio_treino", clear_on_submit=True):
     #     titulo_livro = st.text_input("Titulo do livro")
-    #     menu_autor = pd.read_sql_query("SELECT * FROM autores ORDER BY nome ASC", conn)
-    #     nome_autor = st.selectbox("Autor", menu_autor["nome"])
+        menu_treino = pd.read_sql_query("SELECT * FROM treinos", conn)
+        numero_treino = st.selectbox("Treino", menu_treino["id"])
+        menu_exercicio = pd.read_sql_query("SELECT * FROM exercicios", conn)
+        numero_exercicio = st.selectbox("Exercicio", menu_exercicio["nome"])
+        qtd_serie = st.text_input("Quantidade de Séries")
+        qtd_repeticoes = st.text_input("Quantidade de Repetições")
+        cadastrar_exercicio = st.form_submit_button("Cadastrar")
+        if cadastrar_exercicio:
+            id_exercicio = int(menu_exercicio[menu_exercicio["nome"] == numero_exercicio]["id"].values[0])
+            st.write(id_exercicio)
     #     # nome_autor = st.text_input("Nome do Autor")
     #     menu_categoria = pd.read_sql_query("SELECT * FROM categorias ORDER BY nome ASC", conn)
     #     nome_categoria = st.selectbox("Categoria", menu_categoria["nome"])
