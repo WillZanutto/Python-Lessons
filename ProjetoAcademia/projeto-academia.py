@@ -150,15 +150,22 @@ if opcao_menu == 'Cliente':
         plano = st.selectbox("Planos", menu_planos["nome"])
         cadastrar = st.form_submit_button("Cadastrar")
     if cadastrar:
-            plano_id = int(menu_planos[menu_planos["nome"] == plano]["id"].values[0])
-            cursor.execute('''
-                           INSERT INTO clientes_academia 
-                           (nome, idade, sexo, email, telefone, plano_id) VALUES (?, ?, ?, ?, ?, ?)
-                        ''',(nome_cliente, idade_cliente, sexo_cliente, email_cliente, telefone_cliente, plano_id)
-                        )
-            
-            conn.commit()
-            st.success(f"Cadastro feito com sucesso")
+        if  nome_cliente and idade_cliente and sexo_cliente and email_cliente and telefone_cliente:
+            cursor.execute("SELECT COUNT(*) FROM clientes_academia WHERE nome = ?", (nome_cliente,))
+            if cursor.fetchone()[0] == 0:
+                plano_id = int(menu_planos[menu_planos["nome"] == plano]["id"].values[0])
+                cursor.execute('''
+                            INSERT INTO clientes_academia 
+                            (nome, idade, sexo, email, telefone, plano_id) VALUES (?, ?, ?, ?, ?, ?)
+                            ''',(nome_cliente, idade_cliente, sexo_cliente, email_cliente, telefone_cliente, plano_id)
+                            )
+                
+                conn.commit()
+                st.success(f"Cadastro feito com sucesso")
+            else:
+                st.error(f'Cliente ja existe!')
+        else:
+            st.error(f'Favor preencher todos os campos!')
 elif opcao_menu == 'Pagamento':
     st.write('Pagamento')
     menu_cliente = pd.read_sql_query("SELECT * FROM clientes_academia ORDER BY nome ASC", conn)
