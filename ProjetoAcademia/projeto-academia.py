@@ -159,9 +159,6 @@ if opcao_menu == 'Cliente':
             
             conn.commit()
             st.success(f"Cadastro feito com sucesso")
-    #     except Exception as e:
-    #         conn.rollback()
-    #         st.error(f"Erro ao registrar empréstimo: {str(e)}")
 elif opcao_menu == 'Pagamento':
     st.write('Pagamento')
     menu_cliente = pd.read_sql_query("SELECT * FROM clientes_academia ORDER BY nome ASC", conn)
@@ -183,28 +180,6 @@ elif opcao_menu == 'Pagamento':
                 st.success(f"Pagamento feito com sucesso")
             else:
                 st.error(f"Favor selecionar um cliente.")
-    # with st.form("form_emprestimo"):
-    #     menu_livro = pd.read_sql_query("SELECT * FROM livros ORDER BY titulo ASC", conn)
-    #     livro = st.selectbox("Titulo do livro", menu_livro["titulo"])
-    #     enviar = st.form_submit_button("Enviar")
-    # if enviar:
-    #     try:
-    #         livro_id = int(menu_livro[menu_livro["titulo"] == livro]["id"].values[0])
-    #         data_emprestimo = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    #         cursor.execute("INSERT INTO emprestimos (livro_id, data_emprestimo, devolvido) VALUES (?, ?, 0)",
-    #                     (livro_id, data_emprestimo))
-            
-    #         cursor.execute('''
-    #                     UPDATE livros
-    #                     SET quantidade_disponivel = quantidade_disponivel - 1
-    #                     WHERE titulo = ?
-    #                 ''', (menu_livro,))
-            
-    #         conn.commit()
-    #         st.success(f"Empréstimo feito com sucesso")
-    #     except Exception as e:
-    #         conn.rollback()
-    #         st.error(f"Erro ao registrar empréstimo: {str(e)}")
 if opcao_menu == 'Treino':
     st.write('Treino')
     # with st.form("form_emprestimo"):
@@ -243,24 +218,11 @@ elif opcao_menu == 'Exercicios por Treino':
         if cadastrar_exercicio:
             id_exercicio = int(menu_exercicio[menu_exercicio["nome"] == numero_exercicio]["id"].values[0])
             st.write(id_exercicio)
-    #     # nome_autor = st.text_input("Nome do Autor")
-    #     menu_categoria = pd.read_sql_query("SELECT * FROM categorias ORDER BY nome ASC", conn)
-    #     nome_categoria = st.selectbox("Categoria", menu_categoria["nome"])
-    #     ano_publicacao = st.text_input("Ano de Publicação(AAAA)")
-    #     quantidade = st.number_input("Quantidade Disponível", min_value=1, value=1)
-    #     inserir = st.form_submit_button("Inserir")
-    #     if inserir:
-    #         cursor.execute("SELECT COUNT(*) FROM livros WHERE titulo = ?", (titulo_livro,))
-    #         if cursor.fetchone()[0] == 0:
-    #             autor_id = int(menu_autor[menu_autor["nome"] == nome_autor]["id"].values[0])
-    #             categoria_id = int(menu_categoria[menu_categoria["nome"] == nome_categoria]["id"].values[0])
-    #             cursor.execute('''INSERT INTO livros
-    #                            (titulo, autor_id, categoria_id, ano, quantidade_disponivel) 
-    #                            VALUES(?, ?, ?, ?, ?)''', 
-    #                            (titulo_livro, autor_id, categoria_id,ano_publicacao, quantidade))
-    #             conn.commit()
-    #             st.success(f"Livro Inserido com Sucesso!")
-    #         else:
-    #             st.error(f"Livro ja existe na Base de Dados!")
+            cursor.execute('''INSERT INTO treino_exercicios
+                            (treino_id, exercicio_id, categoria_id, ano, quantidade_disponivel) 
+                            VALUES(?, ?, ?, ?, ?)''', 
+                            (titulo_livro, autor_id, categoria_id,ano_publicacao, quantidade))
+            conn.commit()
+            st.success(f"Livro Inserido com Sucesso!")
 st.write('\n')
 st.write('\n')
