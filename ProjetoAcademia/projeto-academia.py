@@ -207,22 +207,21 @@ if opcao_menu == 'Treino':
 elif opcao_menu == 'Exercicios por Treino':
     st.write('Exercicios por Treino')
     with st.form("form_novo_exercicio_treino", clear_on_submit=True):
-    #     titulo_livro = st.text_input("Titulo do livro")
         menu_treino = pd.read_sql_query("SELECT * FROM treinos", conn)
         numero_treino = st.selectbox("Treino", menu_treino["id"])
         menu_exercicio = pd.read_sql_query("SELECT * FROM exercicios", conn)
-        numero_exercicio = st.selectbox("Exercicio", menu_exercicio["nome"])
+        nome_exercicio = st.selectbox("Exercicio", menu_exercicio["nome"])
         qtd_serie = st.text_input("Quantidade de Séries")
         qtd_repeticoes = st.text_input("Quantidade de Repetições")
         cadastrar_exercicio = st.form_submit_button("Cadastrar")
         if cadastrar_exercicio:
-            id_exercicio = int(menu_exercicio[menu_exercicio["nome"] == numero_exercicio]["id"].values[0])
-            st.write(id_exercicio)
+            treino_id = int(menu_treino[menu_treino["id"] == numero_treino]["id"].values[0])
+            id_exercicio = int(menu_exercicio[menu_exercicio["nome"] == nome_exercicio]["id"].values[0])
             cursor.execute('''INSERT INTO treino_exercicios
-                            (treino_id, exercicio_id, categoria_id, ano, quantidade_disponivel) 
-                            VALUES(?, ?, ?, ?, ?)''', 
-                            (titulo_livro, autor_id, categoria_id,ano_publicacao, quantidade))
+                            (treino_id, exercicio_id, series, repeticoes) 
+                            VALUES(?, ?, ?, ?)''', 
+                            (treino_id, id_exercicio, qtd_serie,qtd_repeticoes))
             conn.commit()
-            st.success(f"Livro Inserido com Sucesso!")
+            st.success(f"Exericio {nome_exercicio} cadastrado com sucesso para o treino {treino_id}!")
 st.write('\n')
 st.write('\n')
