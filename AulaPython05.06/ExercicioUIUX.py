@@ -1,7 +1,7 @@
 import sqlite3
 import pandas as pd
 import streamlit as st
-from datetime import datetime
+import datetime as dt
 import sqlite3
 import csv
 import matplotlib.pyplot as plt
@@ -11,76 +11,99 @@ import seaborn as sns
 df = pd.read_csv('AulaPython05.06\dados_vendas_acai.csv', sep=',', encoding='utf-8', parse_dates=['data_venda'])
 
 
-# 📦 Conecta (ou cria) o banco de dados SQLite
-# conn = sqlite3.connect("AulaPython05.06/vendas-acai.db", check_same_thread=False)
-# cursor = conn.cursor()
-
-# # Criação da tabela clientes (DDL)
-# cursor.execute('''
-# CREATE TABLE IF NOT EXISTS vendas (
-#     id INTEGER PRIMARY KEY AUTOINCREMENT,
-#     data_venda TEXT NOT NULL,
-#     cliente TEXT NOT NULL,
-#     produto TEXT NOT NULL,
-#     quantidade INTEGER NOT NULL,
-#     forma_pagamento TEXT NOT NULL,
-#     preco_unitario REAL NOT NULL,
-#     valor_total REAL NOT NULL,
-#     categoria TEXT NOT NULL
-# )
-# ''')
-
-# cursor.execute("SELECT COUNT(*) FROM vendas")
-# if cursor.fetchone()[0] == 0:
-#     df_vendas = pd.read_csv('AulaPython05.06/dados_vendas_acai.csv')
-#     df_vendas.to_sql('vendas', conn, if_exists='append', index=False)
-
 
 st.title("Vendas de Açaí")
 
-# df_group = pd.read_sql_query('''
-#     SELECT
-#         produto, quantidade
-#     FROM vendas
-#     GROUP BY quantidade
-# ''', conn)
-
-df_group_produto = df.groupby('produto').agg({
-    'quantidade': 'sum',
-    'preco_unitario': 'max',
-    'valor_total': 'sum'
-}).sort_values(['quantidade'], ascending=False)
-st.write(df_group_produto)
-
+#Produtos mais vendidos (Top 5 ou Top 10)
+#Grafico de Pizza com os Produto Mais Vendidos!
 vendas_por_produto = df.groupby('produto')['quantidade'].sum()
-
-df_top5_vendas = df_group_produto.head(5)
-
 st.write(vendas_por_produto)
 
-# fig1, ax1 = plt.subplots()
-# plt.figure(figsize=(8,8))
-# vendas_por_produto.plot.pie(autopct='%1.1f%%', startangle=90, ax=ax1)
-# plt.title('Produtos mais vendidos')
-# plt.ylabel('')  # remove label do eixo y para deixar mais limpo
-# st.pyplot(fig1)
+n = len(vendas_por_produto)
+paleta = sns.light_palette("purple", n_colors=n, reverse=True)
+fig1, ax1 = plt.subplots(figsize=(6,6))
+vendas_por_produto.plot.pie(
+    autopct='%1.1f%%',
+    startangle=90,
+    labels=None,  
+    colors=paleta,
+    ax=ax1
+)
+plt.title('Produtos mais vendidos')
+ax1.legend(
+    labels=vendas_por_produto.index,
+    loc='center left',  
+    bbox_to_anchor=(1, 0.5)  
+)
+ax1.set_xlabel('')
+ax1.set_ylabel('')
+st.pyplot(fig1)
+st.write('\n')
+st.write('\n')
 
-# plt.figure(figsize=(8,8))
-# plt.pie(vendas_por_produto['quantidade'], 
-#         labels=vendas_por_produto['produto'], 
-#         autopct='%1.1f%%', 
-#         startangle=90)
-# plt.title('Produtos mais vendidos')
-# plt.show()
 
-data = vendas_por_produto
-labels = vendas_por_produto
-colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99']
-sns.set_style("darkgrid")
-plt.pie(data, labels=labels, colors=colors)
+#Categorias mais lucrativas
+# vendas_por_categoria = df.groupby('categoria')['valor_total'].sum()
+vendas_por_categoria = df.groupby('categoria').agg({
+    'valor_total': 'sum'
+})
+st.write(vendas_por_categoria)
 
-# Add title
-plt.title("Distribution of Data")
+fig2, ax2 = plt.subplots()
+sns.barplot(data=vendas_por_categoria, x='categoria',y='valor_total', ax=ax2)
+# plt.xticks(rotation=90)
+plt.title("Valor Total de Vendas por Categoria")
+plt.xlabel("Categoria")
+plt.ylabel("Valor Total")
+st.pyplot(fig2)
+st.write('\n')
+st.write('\n')
 
-# Show plot
-plt.show()
+
+
+#Ticket médio por forma de pagamento
+media_vendas_por_cliente = df.groupby('forma_pagamento')['valor_total'].mean().sort_values(ascending=False)
+st.subheader('Média de Ticket por forma de pagamento')
+st.write(media_vendas_por_cliente)
+st.write('\n')
+st.write('\n')
+
+
+
+#Clientes que mais compram (Top clientes)
+vendas_por_cliente = df.groupby('cliente')['quantidade'].sum().sort_values(ascending=False)
+st.subheader('Top 5 clientes que mais compram por quantidade')
+st.write(vendas_por_cliente.head(5))
+st.write('\n')
+st.write('\n')
+
+
+
+
+#Ticket médio por cliente
+media_vendas_por_cliente = df.groupby('cliente')['valor_total'].mean().reset_index(name='media_venda')
+media_vendas_por_cliente = media_vendas_por_cliente.sort_values(by='media_venda', ascending=True)
+st.subheader('Média de Ticket por cliente')
+st.write(media_vendas_por_cliente)
+st.write('\n')
+st.write('\n')
+
+
+
+#Comparativo entre formas de pagamento (volume e valor)
+vendas_por_categoria = df.groupby('forma_pagamento').agg(
+    valor_total=('valor_total', 'sum'),
+    quantidade_vendas=('valor_total', 'count')  # ou qualquer outra coluna
+)
+st.subheader('Comparativo entre formas de pagamento')
+st.write(vendas_por_categoria)
+
+
+#Comparação mês a mês
+df_mês = df
+df_mês['ano_mes'] = df_mês['data_venda'].dt.to_period('M')
+
+vendas_mensais = df.groupby('ano_mes')['valor_total'].sum().reset_index()
+vendas_mensais['ano_mes'] = vendas_mensais['ano_mes'].astype(str)
+
+st.write(vendas_mensais)
