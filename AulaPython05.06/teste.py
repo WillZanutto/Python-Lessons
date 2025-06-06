@@ -54,6 +54,12 @@ clientes_selec = st.sidebar.multiselect(
     default=None
 )
 
+produtos_selec = st.sidebar.multiselect(
+    "Produtos",
+    options=sorted(df['produto'].unique()),
+    default=None
+)
+
 # Filtragem dos dados
 dff = df.copy()
 # Filtra data
@@ -67,6 +73,9 @@ if formas_selec:
 # Filtra cliente
 if clientes_selec:
     dff = dff[dff['cliente'].isin(clientes_selec)]
+
+if produtos_selec:
+    dff = dff[dff['produto'].isin(clientes_selec)]
 
 # Indicadores
 total_vendas = dff['valor_total'].sum()

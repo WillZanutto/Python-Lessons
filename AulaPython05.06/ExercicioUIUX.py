@@ -6,6 +6,8 @@ import sqlite3
 import csv
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
+import numpy as np
 
 #Cria DF
 df = pd.read_csv('AulaPython05.06/dados_vendas_acai.csv', sep=',', encoding='utf-8', parse_dates=['data_venda'])
@@ -45,17 +47,62 @@ def mes(data_mes):
 # )
 # ''')
 
+
+# Filtros
+st.sidebar.header("Filtros")
+
+data_min = df['data_venda'].min()
+data_max = df['data_venda'].max()
+data_selec = st.sidebar.date_input("data_venda", [data_min, data_max], min_value=data_min, max_value=data_max)
+
+formas_selec = st.sidebar.multiselect(
+    "Forma de Pagamento",
+    options=sorted(df['forma_pagamento'].unique()),
+    default=None
+)
+
+clientes_selec = st.sidebar.multiselect(
+    "Clientes",
+    options=sorted(df['cliente'].unique()),
+    default=None
+)
+
+produtos_selec = st.sidebar.multiselect(
+    "Produtos",
+    options=sorted(df['produto'].unique()),
+    default=None
+)
+
+# Filtragem dos dados
+dff = df.copy()
+# Filtra data
+if len(data_selec) == 2:
+    dff = dff[(dff['data_venda'] >= pd.to_datetime(data_selec[0])) & (dff['data_venda'] <= pd.to_datetime(data_selec[1]))]
+
+# Filtra forma_pagamento
+if formas_selec:
+    dff = dff[dff['forma_pagamento'].isin(formas_selec)]
+
+# Filtra cliente
+if clientes_selec:
+    dff = dff[dff['cliente'].isin(clientes_selec)]
+
+if produtos_selec:
+    dff = dff[dff['produto'].isin(produtos_selec)]
+
 st.title("Dashboard Sorveteria")
 
+
+
 #BIG NUMBERS
-total_clientes = df['cliente'].nunique()
-vendas_por_produto = df.groupby('produto')['quantidade'].sum().sort_values(ascending=False)
+total_clientes = dff['cliente'].nunique()
+vendas_por_produto = dff.groupby('produto')['quantidade'].sum().sort_values(ascending=False)
 produto_mais_vendido = vendas_por_produto.index[0]
-vendas_total_por_produto = df.groupby('produto')['valor_total'].sum().sort_values(ascending=False)
+vendas_total_por_produto = dff.groupby('produto')['valor_total'].sum().sort_values(ascending=False)
 produto_mais_lucrativo = vendas_total_por_produto.index[0]
-total_vendas = df['valor_total'].sum()
-ticket_medio = df['valor_total'].mean()
-quantidade_vendida = df['quantidade'].sum()
+total_vendas = dff['valor_total'].sum()
+ticket_medio = dff['valor_total'].mean()
+quantidade_vendida = dff['quantidade'].sum()
 
 col1, col2, col3 = st.columns(3)
 col4, col5, col6 = st.columns(3)
@@ -69,12 +116,12 @@ col6.metric('Quantidade total vendida', f'{quantidade_vendida}')
 
 
 #Gráfico com evolução dos meses
-df['mes'] = df['data_venda'].dt.month_name()
-df['mes'] = df['mes'].apply(mes)
+dff['mes'] = dff['data_venda'].dt.month_name()
+dff['mes'] = dff['mes'].apply(mes)
 
 mes_ordem = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
-df['mes'] = pd.Categorical(df['mes'], categories=mes_ordem, ordered=True)
-evolucao_meses = df.groupby('mes')['valor_total'].sum().reset_index()
+dff['mes'] = pd.Categorical(dff['mes'], categories=mes_ordem, ordered=True)
+evolucao_meses = dff.groupby('mes')['valor_total'].sum().reset_index()
 st.write(evolucao_meses)
 plt.figure(figsize=(10, 5))
 sns.lineplot(data=evolucao_meses, x='mes', y='valor_total', marker='o')
@@ -101,7 +148,8 @@ vendas_por_produto.plot.pie(
     startangle=90,
     labels=None,  
     colors=paleta,
-    ax=ax1
+    ax=ax1,
+    subplots=True
 )
 plt.title('Produtos mais vendidos')
 ax1.legend(
@@ -117,8 +165,8 @@ st.write('\n')
 
 
 #Categorias mais lucrativas
-# vendas_por_categoria = df.groupby('categoria')['valor_total'].sum()
-vendas_por_categoria = df.groupby('categoria').agg({
+# vendas_por_categoria = dff.groupby('categoria')['valor_total'].sum()
+vendas_por_categoria = dff.groupby('categoria').agg({
     'valor_total': 'sum'
 })
 st.write(vendas_por_categoria)
@@ -136,8 +184,8 @@ st.write('\n')
 
 
 #Vendas por hora do dia
-df['hora_venda'] = df['data_venda'].dt.hour
-vendas_por_hora = df.groupby('hora_venda')['quantidade'].sum().reset_index()
+dff['hora_venda'] = dff['data_venda'].dt.hour
+vendas_por_hora = dff.groupby('hora_venda')['quantidade'].sum().reset_index()
 
 st.subheader("Gráfico de Vendas por Hora", divider='grey')
 st.bar_chart(vendas_por_hora.set_index(f'hora_venda'))
@@ -145,7 +193,7 @@ st.bar_chart(vendas_por_hora.set_index(f'hora_venda'))
 
 
 #Ticket médio por forma de pagamento
-media_vendas_por_cliente = df.groupby('forma_pagamento')['valor_total'].mean().sort_values(ascending=False)
+media_vendas_por_cliente = dff.groupby('forma_pagamento')['valor_total'].mean().sort_values(ascending=False)
 st.subheader('Média de Ticket por forma de pagamento', divider='grey')
 st.write(media_vendas_por_cliente)
 st.write('\n')
@@ -154,7 +202,7 @@ st.write('\n')
 
 
 #Clientes que mais compram (Top clientes)
-vendas_por_cliente = df.groupby('cliente')['quantidade'].sum().sort_values(ascending=False)
+vendas_por_cliente = dff.groupby('cliente')['quantidade'].sum().sort_values(ascending=False)
 st.subheader('Top 5 clientes que mais compram por quantidade', divider='grey')
 st.write(vendas_por_cliente.head(5))
 st.write('\n')
@@ -164,7 +212,7 @@ st.write('\n')
 
 
 #Ticket médio por cliente
-media_vendas_por_cliente = df.groupby('cliente')['valor_total'].mean().reset_index(name='media_venda')
+media_vendas_por_cliente = dff.groupby('cliente')['valor_total'].mean().reset_index(name='media_venda')
 media_vendas_por_cliente = media_vendas_por_cliente.sort_values(by='media_venda', ascending=True)
 st.subheader('Média de Ticket por cliente', divider='grey')
 st.write(media_vendas_por_cliente)
@@ -174,7 +222,7 @@ st.write('\n')
 
 
 #Comparativo entre formas de pagamento (volume e valor)
-vendas_por_categoria = df.groupby('forma_pagamento').agg(
+vendas_por_categoria = dff.groupby('forma_pagamento').agg(
     valor_total=('valor_total', 'sum'),
     quantidade_vendas=('valor_total', 'count')  # ou qualquer outra coluna
 )
@@ -183,10 +231,10 @@ st.write(vendas_por_categoria)
 
 
 #Comparação mês a mês
-df_mês = df
-df_mês['ano_mes'] = df_mês['data_venda'].dt.to_period('M')
+dff_mês = dff
+dff_mês['ano_mes'] = dff_mês['data_venda'].dt.to_period('M')
 
-vendas_mensais = df.groupby('ano_mes')['valor_total'].sum().reset_index()
+vendas_mensais = dff.groupby('ano_mes')['valor_total'].sum().reset_index()
 vendas_mensais['ano_mes'] = vendas_mensais['ano_mes'].astype(str)
 st.subheader('Comparativo Mês a Mês', divider='grey')
 st.write(vendas_mensais)
