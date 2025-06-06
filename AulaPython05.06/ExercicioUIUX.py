@@ -122,7 +122,6 @@ dff['mes'] = dff['mes'].apply(mes)
 mes_ordem = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
 dff['mes'] = pd.Categorical(dff['mes'], categories=mes_ordem, ordered=True)
 evolucao_meses = dff.groupby('mes')['valor_total'].sum().reset_index()
-st.write(evolucao_meses)
 plt.figure(figsize=(10, 5))
 sns.lineplot(data=evolucao_meses, x='mes', y='valor_total', marker='o')
 plt.title('Evolução Mensal das Vendas')
@@ -138,8 +137,6 @@ plt.clf()
 
 #Produtos mais vendidos (Top 5 ou Top 10)
 #Grafico de Pizza com os Produto Mais Vendidos!
-st.write(vendas_por_produto)
-
 n = len(vendas_por_produto)
 paleta = sns.light_palette("purple", n_colors=n, reverse=True)
 fig1, ax1 = plt.subplots(figsize=(6,6))
@@ -169,7 +166,6 @@ st.write('\n')
 vendas_por_categoria = dff.groupby('categoria').agg({
     'valor_total': 'sum'
 })
-st.write(vendas_por_categoria)
 
 fig2, ax2 = plt.subplots()
 sns.barplot(data=vendas_por_categoria, x='categoria',y='valor_total', ax=ax2)
