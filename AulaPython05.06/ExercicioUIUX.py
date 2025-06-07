@@ -1,13 +1,9 @@
-import sqlite3
 import pandas as pd
 import streamlit as st
 import datetime as dt
-import sqlite3
-import csv
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
-import numpy as np
 
 #Cria DF
 df = pd.read_csv('AulaPython05.06/dados_vendas_acai.csv', sep=',', encoding='utf-8', parse_dates=['data_venda'])
@@ -27,25 +23,8 @@ def mes(data_mes):
         'November': 'Novembro',
         'December': 'Dezembro'
     }
-    # data = dt.strptime(data_completa, "%Y-%m-%d %H:%M:%S")
-    # mes_num = data.strftime("%M")
     return mes_str[data_mes]
 
-# conn = sqlite3.connect("AulaPython29.05/biblioteca.db", check_same_thread=False)
-# cursor = conn.cursor()
-# # 🏗️ Criação da tabela livros (DDL)
-# cursor.execute('''
-# CREATE TABLE IF NOT EXISTS livros (
-#     id INTEGER PRIMARY KEY AUTOINCREMENT,
-#     titulo TEXT NOT NULL,
-#     autor_id INTEGER NOT NULL,
-#     categoria_id INTEGER NOT NULL,
-#     ano TEXT NOT NULL,
-#     quantidade_disponivel INTEGER NOT NULL,
-#     FOREIGN KEY(autor_id) REFERENCES autores(id),
-#     FOREIGN KEY(categoria_id) REFERENCES categorias(id)
-# )
-# ''')
 
 
 # Filtros
