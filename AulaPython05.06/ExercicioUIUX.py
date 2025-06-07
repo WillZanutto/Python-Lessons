@@ -116,66 +116,93 @@ col6.metric('Quantidade total vendida', f'{quantidade_vendida}')
 
 
 #Gráfico com evolução dos meses
+col7, col8 = st.columns(2)
 dff['mes'] = dff['data_venda'].dt.month_name()
 dff['mes'] = dff['mes'].apply(mes)
 
 mes_ordem = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
 dff['mes'] = pd.Categorical(dff['mes'], categories=mes_ordem, ordered=True)
 evolucao_meses = dff.groupby('mes')['valor_total'].sum().reset_index()
-plt.figure(figsize=(10, 5))
-sns.lineplot(data=evolucao_meses, x='mes', y='valor_total', marker='o')
-plt.title('Evolução Mensal das Vendas')
-plt.xlabel('Mês')
-plt.ylabel('Valor Total (R$)')
-plt.xticks(rotation=45)
+with col7:
+    plt.figure(figsize=(10, 5))
+    sns.lineplot(data=evolucao_meses, x='mes', y='valor_total', marker='o')
+    plt.title('Evolução Mensal das Vendas')
+    plt.xlabel('Mês')
+    plt.ylabel('Valor Total (R$)')
+    plt.xticks(rotation=45)
 
-# Mostrar gráfico no Streamlit
-st.pyplot(plt.gcf())
-plt.clf()
+    # Mostrar gráfico no Streamlit
+    st.pyplot(plt.gcf())
+    plt.clf()
 
 
 
 #Produtos mais vendidos (Top 5 ou Top 10)
 #Grafico de Pizza com os Produto Mais Vendidos!
 n = len(vendas_por_produto)
-paleta = sns.light_palette("purple", n_colors=n, reverse=True)
-fig1, ax1 = plt.subplots(figsize=(6,6))
-vendas_por_produto.plot.pie(
-    autopct='%1.1f%%',
-    startangle=90,
-    labels=None,  
-    colors=paleta,
-    ax=ax1,
-    subplots=True
-)
-plt.title('Produtos mais vendidos')
-ax1.legend(
-    labels=vendas_por_produto.index,
-    loc='center left',  
-    bbox_to_anchor=(1, 0.5)  
-)
-ax1.set_xlabel('')
-ax1.set_ylabel('')
-st.pyplot(fig1)
+with col8:
+    paleta = sns.light_palette("purple", n_colors=n, reverse=True)
+    fig1, ax1 = plt.subplots(figsize=(10,5))
+    vendas_por_produto.plot.pie(
+        autopct='%1.1f%%',
+        startangle=90,
+        labels=None,  
+        colors=paleta,
+        ax=ax1,
+        subplots=True
+    )
+    plt.title('Produtos mais vendidos')
+    ax1.legend(
+        labels=vendas_por_produto.index,
+        loc='center left',  
+        bbox_to_anchor=(1, 0.5)  
+    )
+    ax1.set_xlabel('')
+    ax1.set_ylabel('')
+    st.pyplot(fig1)
 st.write('\n')
 st.write('\n')
 
 
 #Categorias mais lucrativas
+col9, col10 = st.columns(2)
 # vendas_por_categoria = dff.groupby('categoria')['valor_total'].sum()
 vendas_por_categoria = dff.groupby('categoria').agg({
     'valor_total': 'sum'
 })
 
-fig2, ax2 = plt.subplots()
-sns.barplot(data=vendas_por_categoria, x='categoria',y='valor_total', ax=ax2)
-# plt.xticks(rotation=90)
-plt.title("Valor Total de Vendas por Categoria")
-plt.xlabel("Categoria")
-plt.ylabel("Valor Total")
-st.pyplot(fig2)
-st.write('\n')
-st.write('\n')
+with col9:
+    #Total de venda por categoria
+    fig2, ax2 = plt.subplots()
+    sns.barplot(data=vendas_por_categoria, x='categoria',y='valor_total', ax=ax2)
+    # plt.xticks(rotation=90)
+    plt.title("Valor Total de Vendas por Categoria")
+    plt.xlabel("Categoria")
+    plt.ylabel("Valor Total")
+    st.pyplot(fig2)
+    st.write('\n')
+    st.write('\n')
+
+
+
+#Clientes que mais compram (Top clientes)
+with col10:
+    vendas_por_cliente = df.groupby('cliente')['quantidade'].sum().sort_values(ascending=False)
+    top_5 = vendas_por_cliente.head(5)
+    paleta = sns.light_palette("purple", n_colors=n, reverse=True)
+    fig3, ax3 = plt.subplots()
+    ax3.pie(
+        top_5.values,
+        labels=top_5.index,
+        autopct='%1.1f%%',
+        startangle=90,
+        colors=paleta  # paleta de cores
+    )
+    plt.title('Top 5 Clientes Por Quantidade Vendida')
+    ax3.axis('equal')  # mantém o gráfico em forma de círculo
+
+    # Exibir gráfico
+    st.pyplot(fig3)
 
 
 
@@ -183,24 +210,17 @@ st.write('\n')
 dff['hora_venda'] = dff['data_venda'].dt.hour
 vendas_por_hora = dff.groupby('hora_venda')['quantidade'].sum().reset_index()
 
-st.subheader("Gráfico de Vendas por Hora", divider='grey')
+st.subheader("Gráfico de Vendas por Hora do Dia", divider='grey')
 st.bar_chart(vendas_por_hora.set_index(f'hora_venda'))
+st.write('\n')
+st.write('\n')
 
 
 
 #Ticket médio por forma de pagamento
-media_vendas_por_cliente = dff.groupby('forma_pagamento')['valor_total'].mean().sort_values(ascending=False)
+media_vendas_por_cliente = df.groupby('forma_pagamento')['valor_total'].mean().sort_values(ascending=False)
 st.subheader('Média de Ticket por forma de pagamento', divider='grey')
 st.write(media_vendas_por_cliente)
-st.write('\n')
-st.write('\n')
-
-
-
-#Clientes que mais compram (Top clientes)
-vendas_por_cliente = dff.groupby('cliente')['quantidade'].sum().sort_values(ascending=False)
-st.subheader('Top 5 clientes que mais compram por quantidade', divider='grey')
-st.write(vendas_por_cliente.head(5))
 st.write('\n')
 st.write('\n')
 
@@ -218,19 +238,24 @@ st.write('\n')
 
 
 #Comparativo entre formas de pagamento (volume e valor)
-vendas_por_categoria = dff.groupby('forma_pagamento').agg(
+vendas_por_categoria = df.groupby('forma_pagamento').agg(
     valor_total=('valor_total', 'sum'),
     quantidade_vendas=('valor_total', 'count')  # ou qualquer outra coluna
 )
 st.subheader('Comparativo entre formas de pagamento', divider='grey')
 st.write(vendas_por_categoria)
+st.write('\n')
+st.write('\n')
 
 
-#Comparação mês a mês
-dff_mês = dff
-dff_mês['ano_mes'] = dff_mês['data_venda'].dt.to_period('M')
 
-vendas_mensais = dff.groupby('ano_mes')['valor_total'].sum().reset_index()
-vendas_mensais['ano_mes'] = vendas_mensais['ano_mes'].astype(str)
-st.subheader('Comparativo Mês a Mês', divider='grey')
-st.write(vendas_mensais)
+#Tabela dinâmica com agrupamentos por cliente, categoria, mês
+tabela_dinamica = dff.pivot_table(
+    index=['cliente', 'categoria'],
+    columns='mes',
+    values='valor_total',
+    aggfunc='sum',
+    fill_value=0
+).reset_index()
+st.subheader('Tabela Dinâmica de Vendas', divider='grey')
+st.write(tabela_dinamica)
