@@ -198,8 +198,22 @@ st.write('\n')
 
 #Ticket médio por forma de pagamento
 media_vendas_por_cliente = df.groupby('forma_pagamento')['valor_total'].mean().sort_values(ascending=False)
-st.subheader('Média de Ticket por forma de pagamento', divider='grey')
-st.write(media_vendas_por_cliente)
+# st.subheader('Média de Ticket por forma de pagamento', divider='grey')
+# st.write(media_vendas_por_cliente)
+fig4, ax4 = plt.subplots(figsize=(8, 4))
+media_vendas_por_cliente.plot(kind='bar', ax=ax4, color='skyblue', edgecolor='black')
+bars = ax4.bar(media_vendas_por_cliente.index, media_vendas_por_cliente.values, color='skyblue', edgecolor='black')
+ax4.bar_label(bars, fmt='%.2f', padding=3)
+y_max = media_vendas_por_cliente.max()
+ax4.set_ylim(0, y_max * 1.2)
+ax4.set_ylabel('Média do Valor Total')
+ax4.set_xlabel('Formas de Pagamento')
+ax4.set_title('Ticket Médio por Forma de Pagamento')
+ax4.grid(axis='y', linestyle='--', alpha=0.5)
+plt.xticks(rotation=0)
+
+# Exibir gráfico
+st.pyplot(fig4)
 st.write('\n')
 st.write('\n')
 
